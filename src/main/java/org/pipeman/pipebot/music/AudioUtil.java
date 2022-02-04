@@ -34,13 +34,17 @@ public class AudioUtil {
 
     public static void loadAndPlay(Member member, SlashCommandEvent event, String trackUrl) {
         PlayerInstance player = getOrCreateGuildAudioPlayer(Objects.requireNonNull(event.getGuild()));
+
         boolean needsExtraReply = true;
+        boolean isNewPlayer = false;
         if (player.playerGUIMessage == null) {
             player.sendEmbed(event);
             needsExtraReply = false;
+            isNewPlayer = true;
         }
 
         boolean finalNeedsExtraReply = needsExtraReply;
+        boolean finalIsNewPlayer = isNewPlayer;
         playerManager.loadItemOrdered(player, trackUrl, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
@@ -51,7 +55,6 @@ public class AudioUtil {
                 } else {
                     player.updateEmbed();
                 }
-
                 if (finalNeedsExtraReply) {
                     event.reply("Loaded track" + track.getInfo().title).setEphemeral(true).queue();
                 }
@@ -72,24 +75,28 @@ public class AudioUtil {
                 }
                 if (finalNeedsExtraReply) {
                     event.reply("Loaded track " + firstTrack.getInfo().title).setEphemeral(true).queue();
-                    // TODO Send in an Embed since that looks terrible
+                    // TODO Send that in an Embed since that looks terrible
                 }
             }
 
             @Override
             public void noMatches() {
-                playerInstances.remove(event.getGuild().getIdLong());
+                if (finalIsNewPlayer) {
+                    playerInstances.remove(event.getGuild().getIdLong());
+                }
                 sendErrorEmbed("No matches", "Nothing was found by " + trackUrl,
                         finalNeedsExtraReply, event, player);
             }
 
             @Override
             public void loadFailed(FriendlyException exception) {
-                playerInstances.remove(event.getGuild().getIdLong());
+                if (finalIsNewPlayer) {
+                    playerInstances.remove(event.getGuild().getIdLong());
+                }
                 sendErrorEmbed("Something weird happened", "Please try again or choose a different song. "
                         + "\nWe are sorry for the inconvenience", finalNeedsExtraReply, event, player);
                 logger.error("An error occurred when loading \"" + trackUrl + "\". " + exception.getMessage());
-            } // TODO remove errorEmbed thing in PlayerInstance
+            }
         });
     }
 

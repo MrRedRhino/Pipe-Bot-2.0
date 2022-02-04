@@ -128,7 +128,7 @@ public class PlayerInstance extends AudioEventAdapter {
                 }
                 case SONG -> player.playTrack(queue.get(positionInQueue).makeClone());
 
-                case PLAYLIST -> {
+                case QUEUE -> {
                     positionInQueue = (positionInQueue + 1 >= queue.size() ? 0 : positionInQueue + 1);
                     player.playTrack(queue.get(positionInQueue).makeClone());
                 }
@@ -202,8 +202,8 @@ public class PlayerInstance extends AudioEventAdapter {
     public void loopButtonClicked() {
         switch (loopMode) {
             case OFF -> loopMode = LoopMode.SONG;
-            case SONG -> loopMode = LoopMode.PLAYLIST;
-            case PLAYLIST -> loopMode = LoopMode.OFF;
+            case SONG -> loopMode = LoopMode.QUEUE;
+            case QUEUE -> loopMode = LoopMode.OFF;
         }
         updateEmbed();
     }

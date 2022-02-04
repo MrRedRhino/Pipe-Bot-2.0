@@ -6,13 +6,15 @@ import org.pipeman.pipebot.Main;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
+
 public class InterfaceButtonHandler extends ListenerAdapter {
     Logger logger = LoggerFactory.getLogger(InterfaceButtonHandler.class);
 
     @Override
     public void onButtonClick(ButtonClickEvent event) {
-        event.deferEdit().queue(); // TODO only defer if user has permission otherwise send angry message
-        PlayerInstance pi = Main.playerInstances.get(event.getGuild().getIdLong());
+        event.deferEdit().queue();
+        PlayerInstance pi = Main.playerInstances.get(Objects.requireNonNull(event.getGuild()).getIdLong());
         if (pi == null
                 || event.getMember() == null
                 || event.getMember().getVoiceState() == null

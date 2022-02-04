@@ -2,7 +2,6 @@ package org.pipeman.pipebot.commands;
 
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import org.pipeman.pipebot.Main;
 import org.pipeman.pipebot.music.AudioUtil;
 
 import java.util.Objects;
@@ -11,7 +10,6 @@ public class CommandPlay extends ListenerAdapter {
 
     @Override
     public void onSlashCommand(SlashCommandEvent event) {
-        System.out.println(Main.JDA.getGuilds());
         if (!event.getName().equals("play") || event.getMember() == null) return;
 
         if (event.getMember().getVoiceState() == null || event.getMember().getVoiceState().getChannel() == null) {

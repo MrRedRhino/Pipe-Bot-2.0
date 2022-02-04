@@ -6,7 +6,9 @@ import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.interactions.commands.Command;
 import org.pipeman.pipebot.music.PlayerInstance;
+import org.pipeman.pipebot.util.EmbedUpdater;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,8 +36,13 @@ public class Main {
         AudioSourceManagers.registerLocalSource(playerManager);
         AllCommands.addEventListeners(JDA);
         ShutdownManager.start();
+        EmbedUpdater.start();
 
-        AllCommands.deleteCommands(JDA);
+        JDA.retrieveCommands().queue(response -> {
+            for (Command c : response) {
+                System.out.println(c);
+            }
+        });
     }
 }
 
