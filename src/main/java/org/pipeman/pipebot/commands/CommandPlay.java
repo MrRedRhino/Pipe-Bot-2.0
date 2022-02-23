@@ -23,8 +23,6 @@ public class CommandPlay extends ListenerAdapter {
         } else {
             AudioUtil.loadAndPlay(event.getMember(), event, song);
         }
-
-        // YouTube Search: ytsearch:
         //Sound Cloud Search: scsearch:
     }
 }

@@ -1,4 +1,4 @@
-package org.pipeman.pipebot.util;
+package org.pipeman.pipebot.util.music;
 
 import org.pipeman.pipebot.Main;
 import org.pipeman.pipebot.music.PlayerInstance;
@@ -13,8 +13,11 @@ public class EmbedUpdater {
         t.schedule(new TimerTask() {
             @Override
             public void run() {
+                long time = System.currentTimeMillis();
                 for (PlayerInstance pi : Main.playerInstances.values()) {
-                    if (!pi.player.isPaused() && pi.player.getPlayingTrack() != null) {
+                    if (!pi.player.isPaused()
+                            && pi.player.getPlayingTrack() != null
+                            && time - pi.lastUpdateTimestamp > 5000) {
                         pi.updateEmbed();
                     }
                 }

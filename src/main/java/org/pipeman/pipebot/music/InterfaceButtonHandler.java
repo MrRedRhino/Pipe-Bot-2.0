@@ -14,6 +14,9 @@ public class InterfaceButtonHandler extends ListenerAdapter {
     @Override
     public void onButtonClick(ButtonClickEvent event) {
         event.deferEdit().queue();
+        if (event.getComponentId().equals("del_msg")) {
+            event.getMessage().delete().queue();
+        }
         PlayerInstance pi = Main.playerInstances.get(Objects.requireNonNull(event.getGuild()).getIdLong());
         if (pi == null
                 || event.getMember() == null

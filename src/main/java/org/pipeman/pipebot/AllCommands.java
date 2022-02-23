@@ -8,7 +8,7 @@ import org.pipeman.pipebot.music.InterfaceButtonHandler;
 
 public class AllCommands {
     public static void upsert(JDA jda) {
-//        jda.upsertCommand("play", "Adds a song to the playlist and plays it if nothing is playing; (video name)").queue();
+//        jda.upsertCommand("play", "Adds a song to the playlist").queue();
 //        jda.addEventListener(new CommandPlay());
 //
 //        jda.upsertCommand("leave", "Makes the bot leave your VC").queue();
@@ -38,6 +38,6 @@ public class AllCommands {
     }
 
     public static void deleteCommands(JDA jda) {
-//        jda.deleteCommandById("back").queue();
+
     }
 }

@@ -13,7 +13,8 @@ import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.interactions.components.Button;
 import org.pipeman.pipebot.Main;
-import org.pipeman.pipebot.util.PlayerInterfaceUtil;
+import org.pipeman.pipebot.util.lyrics.LyricsManager;
+import org.pipeman.pipebot.util.music.PlayerInterfaceUtil;
 import org.pipeman.pipebot.util.music.InterfaceMode;
 import org.pipeman.pipebot.util.music.LoopMode;
 import org.slf4j.Logger;
@@ -22,40 +23,48 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class PlayerInstance extends AudioEventAdapter {
     public final AudioPlayer player;
     private final ArrayList<AudioTrack> queue;
     public Message playerGUIMessage;
     private final Logger logger = LoggerFactory.getLogger(PlayerInstance.class);
-    private boolean needsUpdatingWhenMessageWasSent = false;
-    private MessageEmbed embedToUpdateWhenMessageWasSent;
+    private Runnable onInterfaceSent;
     int positionInQueue = 0;
+    public long lastUpdateTimestamp = System.currentTimeMillis();
     LoopMode loopMode = LoopMode.OFF;
     InterfaceMode interfaceMode = InterfaceMode.NOTHING;
+    LyricsManager m;
 
     public PlayerInstance(AudioPlayerManager manager) {
         this.queue = new ArrayList<>();
         player = manager.createPlayer();
         player.addListener(this);
         manager.getConfiguration().setFilterHotSwapEnabled(true);
+        m = new LyricsManager();
+        m.playerInstance = this;
+        try {
+            m.loadLyrics("aa");
+            System.out.println(m.lines);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     private MessageEmbed createInterfaceEmbed(AudioTrack track) {
         EmbedBuilder eb = PlayerInterfaceUtil.genNormalEmbed(
-                "https://img.youtube.com/vi/" +
-                        track.getInfo().identifier
+                "https://img.youtube.com/vi/"
+                        + track.getInfo().identifier
                         + "/hqdefault.jpg", track, interfaceMode != InterfaceMode.NOTHING);
 
         switch (interfaceMode) {
             case NOTHING -> {
 
             }
-            case LYRICS -> {
-                eb.addField("LYRICS", "No lyrics available", false);
-            }
+
             case QUEUE -> {
-                List<AudioTrack> tmp = queue.subList(positionInQueue + 1, queue.size());
+                List<AudioTrack> tmp = queue.subList(positionInQueue + 1, Math.min(queue.size(), positionInQueue + 4));
                 StringBuilder out = new StringBuilder();
                 if (tmp.size() == 0) {
                     out.append("This is the end of the queue");
@@ -65,8 +74,13 @@ public class PlayerInstance extends AudioEventAdapter {
                         int duration = (int) t.getDuration() / 1000;
                         out.append(String.format("%d:%02d ", duration / 60, duration % 60)).append("\n\n");
                     }
-                }
 
+                    if (queue.size() - (positionInQueue + 3) - 1 > 0) {
+                        out.append(queue.size() - (positionInQueue + 3) - 1).append(" more");
+                    } else {
+                        out.append("This is the end of the queue");
+                    }
+                }
                 eb.addField("Queue", out.toString(), false);
             }
             case HISTORY -> {
@@ -79,9 +93,10 @@ public class PlayerInstance extends AudioEventAdapter {
 
     private void updateEmbedInternal(AudioTrack track) {
         if (playerGUIMessage != null) {
-            (track == null ? playerGUIMessage.editMessageEmbeds(PlayerInterfaceUtil.genNothingPlayingEmbed()) :
-                    playerGUIMessage.editMessageEmbeds(createInterfaceEmbed(track))
+            (track == null ? playerGUIMessage.editMessageEmbeds(PlayerInterfaceUtil.genNothingPlayingEmbed(
+                    interfaceMode != InterfaceMode.NOTHING)) :
 
+                    playerGUIMessage.editMessageEmbeds(createInterfaceEmbed(track))
                             .setActionRows(Arrays.asList(ActionRow.of(Arrays.asList(
                                     Button.secondary("back", "<<"),
                                     Button.secondary("fb", "-10s"),
@@ -94,8 +109,6 @@ public class PlayerInstance extends AudioEventAdapter {
                                     Button.secondary("loop", "Looping: " + loopMode.toString()),
                                     Button.danger("leave", "➜")
                             ))))).queue();
-        } else {
-            logger.warn("A message embed is not existing.");
         }
     }
 
@@ -139,17 +152,17 @@ public class PlayerInstance extends AudioEventAdapter {
         }
     }
 
-    public void setEmbedToUpdateWhenMessageHasBeenSent(MessageEmbed embed) {
-        needsUpdatingWhenMessageWasSent = true;
-        embedToUpdateWhenMessageWasSent = embed;
+    public void setEmbedToUpdateWhenMessageHasBeenSent(Runnable r) {
+        onInterfaceSent = r;
     }
 
     public void sendEmbed(SlashCommandEvent event) {
         event.replyEmbeds(PlayerInterfaceUtil.genSearchEmbed()).queue(
                 response -> response.retrieveOriginal().queue(response2 -> {
                     playerGUIMessage = response2;
-                    if (needsUpdatingWhenMessageWasSent) {
-                        playerGUIMessage.editMessageEmbeds(embedToUpdateWhenMessageWasSent).queue();
+                    if (onInterfaceSent != null) {
+                        onInterfaceSent.run();
+                        onInterfaceSent = null;
                     }
                 }));
     }
@@ -160,15 +173,17 @@ public class PlayerInstance extends AudioEventAdapter {
     }
 
     public void skip() {
-        positionInQueue++;
-        if (positionInQueue >= queue.size()) positionInQueue = 0;
-        player.playTrack(queue.get(positionInQueue).makeClone());
+        if (positionInQueue < queue.size() - 1) {
+            positionInQueue++;
+            player.playTrack(queue.get(positionInQueue).makeClone());
+        }
     }
 
     public void back() {
-        positionInQueue--;
-        if (positionInQueue < 0) positionInQueue = 0;
-        player.playTrack(queue.get(positionInQueue).makeClone());
+        if (positionInQueue > 0) {
+            positionInQueue--;
+            player.playTrack(queue.get(positionInQueue).makeClone());
+        }
     }
 
     public void ffOrFb(long time) {
@@ -191,8 +206,11 @@ public class PlayerInstance extends AudioEventAdapter {
 
     public void lqhButtonClicked() {
         switch (interfaceMode) {
-            case NOTHING -> interfaceMode = InterfaceMode.LYRICS;
-            case LYRICS -> interfaceMode = InterfaceMode.QUEUE;
+//            case NOTHING -> {
+//                interfaceMode = InterfaceMode.LYRICS;
+//                m.scheduleUpdates(m.lines);
+//            }
+            case NOTHING -> interfaceMode = InterfaceMode.QUEUE;
             case QUEUE -> interfaceMode = InterfaceMode.HISTORY;
             case HISTORY -> interfaceMode = InterfaceMode.NOTHING;
         }

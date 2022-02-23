@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
+import net.dv8tion.jda.api.interactions.components.Button;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +57,7 @@ public class AudioUtil {
                     player.updateEmbed();
                 }
                 if (finalNeedsExtraReply) {
-                    event.reply("Loaded track" + track.getInfo().title).setEphemeral(true).queue();
+                    event.reply("Loaded track " + track.getInfo().title).setEphemeral(true).queue();
                 }
             }
 
@@ -74,8 +75,11 @@ public class AudioUtil {
                     player.updateEmbed();
                 }
                 if (finalNeedsExtraReply) {
-                    event.reply("Loaded track " + firstTrack.getInfo().title).setEphemeral(true).queue();
-                    // TODO Send that in an Embed since that looks terrible
+//                    event.reply("Loaded track " + firstTrack.getInfo().title).setEphemeral(true).queue();
+                    EmbedBuilder eb = new EmbedBuilder();
+                    eb.setColor(new Color(114, 137, 218));
+                    eb.setDescription("Queued [" + firstTrack.getInfo().title + "](" + firstTrack.getInfo().uri + ")");
+                    event.replyEmbeds(eb.build()).setEphemeral(true).queue();
                 }
             }
 
@@ -108,8 +112,11 @@ public class AudioUtil {
 
         if (needsExtraReply) {
             e.replyEmbeds(eb.build()).setEphemeral(true).queue();
+//                        .addActionRow(Button.danger("leave", "➜"))
         } else {
-            p.setEmbedToUpdateWhenMessageHasBeenSent(eb.build());
+            p.setEmbedToUpdateWhenMessageHasBeenSent(
+                    () -> p.playerGUIMessage.editMessageEmbeds(eb.build())
+                            .setActionRow(Button.danger("del_msg", "Ok.")).queue());
         }
     }
 
