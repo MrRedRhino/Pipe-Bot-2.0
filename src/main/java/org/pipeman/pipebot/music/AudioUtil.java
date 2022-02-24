@@ -114,7 +114,7 @@ public class AudioUtil {
             e.replyEmbeds(eb.build()).setEphemeral(true).queue();
 //                        .addActionRow(Button.danger("leave", "➜"))
         } else {
-            p.setEmbedToUpdateWhenMessageHasBeenSent(
+            p.setRunnableToExecuteWhenEmbedWasSent(
                     () -> p.playerGUIMessage.editMessageEmbeds(eb.build())
                             .setActionRow(Button.danger("del_msg", "Ok.")).queue());
         }

@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.Random;
 
 public class PlayerInstance extends AudioEventAdapter {
     public final AudioPlayer player;
@@ -36,6 +36,7 @@ public class PlayerInstance extends AudioEventAdapter {
     LoopMode loopMode = LoopMode.OFF;
     InterfaceMode interfaceMode = InterfaceMode.NOTHING;
     LyricsManager m;
+    public int sessionId;
 
     public PlayerInstance(AudioPlayerManager manager) {
         this.queue = new ArrayList<>();
@@ -50,6 +51,7 @@ public class PlayerInstance extends AudioEventAdapter {
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
+        sessionId = new Random().nextInt(Integer.MAX_VALUE);
     }
 
     private MessageEmbed createInterfaceEmbed(AudioTrack track) {
@@ -152,7 +154,7 @@ public class PlayerInstance extends AudioEventAdapter {
         }
     }
 
-    public void setEmbedToUpdateWhenMessageHasBeenSent(Runnable r) {
+    public void setRunnableToExecuteWhenEmbedWasSent(Runnable r) {
         onInterfaceSent = r;
     }
 
