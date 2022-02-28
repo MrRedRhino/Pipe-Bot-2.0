@@ -6,7 +6,6 @@ import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
 
 public class CommandPurgeUntilID extends ListenerAdapter {
 

@@ -18,6 +18,7 @@ public class CommandPlay extends ListenerAdapter {
         }
 
         String song = Objects.requireNonNull(event.getOption("song")).getAsString();
+        //noinspection HttpUrlsUsage
         if (!song.startsWith("https://") && !song.startsWith("http://")) {
             AudioUtil.loadAndPlay(event.getMember(), event, "ytsearch:\"" + song + "\"");
         } else {

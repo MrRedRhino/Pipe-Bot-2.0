@@ -17,7 +17,7 @@ import java.util.TimerTask;
 
 public class LyricsManager {
     public PlayerInstance playerInstance;
-    public ArrayList<LyricLine> lines = new ArrayList<>();
+    public final ArrayList<LyricLine> lines = new ArrayList<>();
     private final Timer timer = new Timer();
 
     public LyricsManager() {}
@@ -56,8 +56,7 @@ public class LyricsManager {
     
     public void scheduleUpdates(ArrayList<LyricLine> lines) {
         System.out.println(lines);
-        for (int i = 0; i < lines.size(); i++) {
-            LyricLine l = lines.get(i);
+        for (LyricLine l : lines) {
             timer.schedule(new TimerTask() {
                 @Override
                 public void run() {

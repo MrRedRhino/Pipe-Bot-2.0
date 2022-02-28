@@ -6,6 +6,13 @@ import spark.Spark;
 
 public class Server {
     public static void start() {
+        Spark.port(4444);
+
+        Spark.after((request, response) -> {
+            response.header("Access-Control-Allow-Origin", "*");
+            response.header("Access-Control-Allow-Methods", "GET");
+        });
+
         Spark.get("/pbi/sessions/*", ((request, response) -> {
             String url = request.url();
             int sessionId;

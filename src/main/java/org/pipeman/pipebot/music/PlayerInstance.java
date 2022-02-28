@@ -32,11 +32,11 @@ public class PlayerInstance extends AudioEventAdapter {
     private final Logger logger = LoggerFactory.getLogger(PlayerInstance.class);
     private Runnable onInterfaceSent;
     int positionInQueue = 0;
-    public long lastUpdateTimestamp = System.currentTimeMillis();
+    public final long lastUpdateTimestamp = System.currentTimeMillis();
     LoopMode loopMode = LoopMode.OFF;
     InterfaceMode interfaceMode = InterfaceMode.NOTHING;
-    LyricsManager m;
-    public int sessionId;
+    final LyricsManager m;
+    public final int sessionId;
 
     public PlayerInstance(AudioPlayerManager manager) {
         this.queue = new ArrayList<>();
@@ -85,9 +85,7 @@ public class PlayerInstance extends AudioEventAdapter {
                 }
                 eb.addField("Queue", out.toString(), false);
             }
-            case HISTORY -> {
-                eb.addField("History", "No history available", false);
-            }
+            case HISTORY -> eb.addField("History", "No history available", false);
         }
 
         return eb.build();
@@ -111,6 +109,8 @@ public class PlayerInstance extends AudioEventAdapter {
                                     Button.secondary("loop", "Looping: " + loopMode.toString()),
                                     Button.danger("leave", "➜")
                             ))))).queue();
+        } else {
+            setRunnableToExecuteWhenEmbedWasSent(() -> updateEmbedInternal(track));
         }
     }
 
@@ -159,14 +159,12 @@ public class PlayerInstance extends AudioEventAdapter {
     }
 
     public void sendEmbed(SlashCommandEvent event) {
-        event.replyEmbeds(PlayerInterfaceUtil.genSearchEmbed()).queue(
-                response -> response.retrieveOriginal().queue(response2 -> {
-                    playerGUIMessage = response2;
-                    if (onInterfaceSent != null) {
-                        onInterfaceSent.run();
-                        onInterfaceSent = null;
-                    }
-                }));
+        event.getChannel().sendMessageEmbeds(PlayerInterfaceUtil.genSearchEmbed()).queue(response -> {
+            playerGUIMessage = response;
+            if (onInterfaceSent != null) {
+                onInterfaceSent.run();
+                onInterfaceSent = null;
+            }});
     }
 
     public void togglePaused() {
@@ -208,10 +206,6 @@ public class PlayerInstance extends AudioEventAdapter {
 
     public void lqhButtonClicked() {
         switch (interfaceMode) {
-//            case NOTHING -> {
-//                interfaceMode = InterfaceMode.LYRICS;
-//                m.scheduleUpdates(m.lines);
-//            }
             case NOTHING -> interfaceMode = InterfaceMode.QUEUE;
             case QUEUE -> interfaceMode = InterfaceMode.HISTORY;
             case HISTORY -> interfaceMode = InterfaceMode.NOTHING;

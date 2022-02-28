@@ -1,9 +1,9 @@
 package org.pipeman.pipebot.util.lyrics;
 
 public class LyricLine {
-    String content;
-    long startTime;
-    long duration;
+    final String content;
+    final long startTime;
+    final long duration;
     public boolean highlighted = false;
 
     public LyricLine(String content, long startTime, long duration) {
